@@ -1,0 +1,280 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #16181d;
+  --panel: #1f2229;
+  --border: #2f333d;
+  --text: #e8eaef;
+  --muted: #9aa1ae;
+  --accent: #7aa2ff;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--border);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+/* ---------- page ---------- */
+
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 3rem 1rem 6rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.page-header p {
+  color: var(--muted);
+  margin: 0.25rem 0 1.5rem;
+}
+
+.page-header ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 2rem;
+  padding: 0;
+}
+
+.page-header a {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.page-header a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- demo section ---------- */
+
+.demo {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  scroll-margin-top: 1rem;
+}
+
+.demo h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.demo header p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  max-width: 75ch;
+}
+
+.demo-stage {
+  height: 340px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+/* three carousels side by side (edge cases) */
+.demo-stage--grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .demo-stage--grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .demo-stage--grid > * {
+    height: 200px;
+  }
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+
+/* ---------- controls ---------- */
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--border);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stepper output,
+.range output {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+  min-width: 4ch;
+}
+
+.range,
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.range input {
+  width: 140px;
+  accent-color: var(--accent);
+}
+
+.toggle input {
+  accent-color: var(--accent);
+}
+
+/* keyboard focus on carousels (BasicDemo is focusable) */
+[aria-roledescription="carousel"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* ---------- slides ---------- */
+
+.face {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  background: hsl(var(--hue, 220) 65% 45%);
+  border: 2px solid hsl(var(--hue, 220) 80% 75%);
+  border-radius: 6px;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  /* hide the whole face when it's turned away */
+  transition: filter 0.4s ease;
+}
+
+/* faceProps adds these classes to the carousel's face wrappers */
+.dimmed > .face {
+  filter: brightness(0.45) saturate(0.6);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+/* card-back recipe (CardBackDemo) */
+.card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: hsl(var(--hue) 65% 45% / 0.45);
+  border: 2px solid hsl(var(--hue) 80% 75%);
+  border-radius: 6px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  /* lets the content have its own back side */
+  transform-style: preserve-3d;
+}
+
+.card-content {
+  backface-visibility: hidden;
+}
+
+/* centerpiece (CenterpieceDemo) */
+.logo-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.logo {
+  padding: 1.5rem 2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7aa2ff, #c58bff);
+  color: #10121a;
+  font-size: 1.6rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.glass {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: hsl(var(--hue) 65% 50% / 0.35);
+  border: 1px solid hsl(var(--hue) 80% 80% / 0.8);
+  border-radius: 8px;
+  font-weight: 600;
+}

@@ -1,0 +1,137 @@
+@layer react-prism-carousel.components {
+  /* Only the component's own elements. box-sizing isn't inherited, so this
+     never reaches the consumer's content inside the faces. */
+  .carouselContainer,
+  .carousel,
+  .carousel > * {
+    box-sizing: border-box;
+  }
+
+  .carouselContainer {
+    display: flex;
+    container-type: size;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    contain: paint;
+    position: relative;
+  }
+
+  .carousel[data-orientation="vertical"] {
+    --prism-radius: 50cqh;
+    --prism-rotate-deg: calc(
+      360deg / (var(--prism-face-count) + var(--prism-num-empty-faces))
+    );
+    --prism-face-height: calc(
+      sin(var(--prism-rotate-deg) / 2) * var(--prism-radius) * 2
+    );
+    --prism-origin-depth: calc(
+      cos(var(--prism-rotate-deg) / 2) * var(--prism-radius) *
+        var(--prism-depth-sign)
+    );
+    transform: rotateX(
+      calc(var(--prism-current-face) * var(--prism-rotate-deg) * -1)
+    );
+
+    & > *:not(.centerpiece) {
+      height: var(--prism-face-height);
+      width: 100%;
+      rotate: x calc((var(--prism-rotate-deg) * (sibling-index() - 1)));
+    }
+
+    & > .centerpiece {
+      transform: rotateX(
+        calc(var(--prism-current-face) * var(--prism-rotate-deg))
+      );
+    }
+  }
+
+  .carousel[data-orientation="horizontal"] {
+    --prism-radius: 50cqw;
+    --prism-rotate-deg: calc(
+      360deg / (var(--prism-face-count) + var(--prism-num-empty-faces))
+    );
+    --prism-face-width: calc(
+      sin(var(--prism-rotate-deg) / 2) * var(--prism-radius) * 2
+    );
+    --prism-origin-depth: calc(
+      cos(var(--prism-rotate-deg) / 2) * var(--prism-radius) *
+        var(--prism-depth-sign)
+    );
+    transform: rotateY(
+      calc(var(--prism-current-face) * var(--prism-rotate-deg) * -1)
+    );
+
+    & > *:not(.centerpiece) {
+      width: var(--prism-face-width);
+      height: 100%;
+      rotate: y calc((var(--prism-rotate-deg) * (sibling-index() - 1)));
+    }
+
+    & > .centerpiece {
+      transform: rotateY(
+        calc(var(--prism-current-face) * var(--prism-rotate-deg))
+      );
+    }
+  }
+
+  .carousel[data-facesize="manual"] {
+    --prism-radius: calc(
+      var(--prism-face-size) / (2 * sin(var(--prism-rotate-deg) / 2))
+    );
+  }
+
+  .carousel[data-concave] {
+    --prism-depth-sign: 1;
+  }
+
+  .carousel[data-flat] {
+    transform: none;
+
+    & > *:not(.centerpiece) {
+      width: 100%;
+      height: 100%;
+      rotate: none;
+      transform-origin: 50% 50%;
+    }
+  }
+
+  .carousel {
+    --prism-depth-sign: -1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    transform-style: preserve-3d;
+    transform-origin: 50% 50% var(--prism-origin-depth);
+    position: relative;
+    translate: 0px 0px calc(var(--prism-camera-offset));
+    transition: var(--prism-transition, none);
+
+    & > *:not(.centerpiece) {
+      position: absolute;
+      transform-origin: 50% 50% var(--prism-origin-depth);
+      inset: 0;
+      margin: auto;
+      transform-style: preserve-3d;
+    }
+  }
+
+  .centerpiece {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transform-style: preserve-3d;
+    translate: 0px 0px var(--prism-origin-depth);
+    transition: var(--prism-transition);
+  }
+
+  /* Users who ask for reduced motion get instant face changes, even when the
+     transition prop is set. Same specificity as `.carousel` above and later in
+     the file, so it wins. An inline `transition` in prismProps.style still
+     overrides it: that's the consumer's explicit choice. */
+  @media (prefers-reduced-motion: reduce) {
+    .carousel {
+      transition: none;
+    }
+  }
+}
