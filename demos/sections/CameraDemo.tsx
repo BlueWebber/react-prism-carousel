@@ -23,8 +23,8 @@ export default function CameraDemo() {
           inside the carousel (note that "next" now turns the other way on
           screen). The lens is plain CSS <code>perspective</code> on the root;{" "}
           <code>cameraOffset</code> moves the camera: positive values bring it
-          closer, eventually inside the prism, where faces behind the camera
-          are clipped.
+          closer, eventually inside the prism, where faces behind the camera are
+          clipped.
         </>
       }
       controls={
@@ -63,7 +63,7 @@ export default function CameraDemo() {
         style={{ perspective: `${lens}px` }}
       >
         {HUES.slice(0, 8).map((hue, i) => (
-          <Face key={i} hue={hue}>
+          <Face key={i} hue={hue} className="face-backface-visible">
             {i + 1}
           </Face>
         ))}

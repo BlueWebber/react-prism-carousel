@@ -209,7 +209,12 @@ button:disabled {
   font-weight: 700;
   text-align: center;
   /* hide the whole face when it's turned away */
+  backface-visibility: hidden;
   transition: filter 0.4s ease;
+}
+
+.face-backface-visible {
+  backface-visibility: visible !important;
 }
 
 /* faceProps adds these classes to the carousel's face wrappers */
