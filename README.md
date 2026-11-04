@@ -1,4 +1,4 @@
-[![npm-card](https://shields.io)](https://www.npmjs.com/package/react-prism-carousel) [![bundle size](https://shields.io)](https://bundlephobia.com) [![bundle size](https://shields.io)](https://bundlephobia.com)
+![npm-card](https://shields.io)](https://www.npmjs.com/package/react-prism-carousel) ![bundle size](https://shields.io)](https://bundlephobia.com) ![bundle size](https://shields.io)](https://bundlephobia.com)
 
 # react-prism-carousel
 
