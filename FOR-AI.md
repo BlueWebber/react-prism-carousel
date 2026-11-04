@@ -15,8 +15,20 @@ This file is for AI assistants writing code that **uses** this component in anot
 ```ts
 import Carousel from "react-prism-carousel";               // or: import { Carousel } from …
 import type { CarouselProps, FaceProps, PrismProps } from "react-prism-carousel";
-import "react-prism-carousel/style.css";                    // REQUIRED, once per app (e.g. in the root component or entry file)
 ```
+
+**No CSS import is needed.** The package's JS imports its own stylesheet, and the bundler includes it. (Up to 0.1.2 consumers had to import `react-prism-carousel/style.css`; that import still works, is harmless, and doesn't duplicate the CSS.)
+
+**Server rendering and tests.** Node can't import `.css`, so anything that runs the package unbundled in Node fails with `ERR_UNKNOWN_FILE_EXTENSION` / `Unknown file extension ".css"`. Make the tool bundle the package:
+
+| Tool | Setting |
+|---|---|
+| Vite SSR (and frameworks built on Vite) | `ssr: { noExternal: ["react-prism-carousel"] }` in the Vite config |
+| Vitest | `test: { server: { deps: { inline: ["react-prism-carousel"] } } }` |
+| Next.js | `transpilePackages: ["react-prism-carousel"]` in `next.config.js` |
+| Jest | `moduleNameMapper: { "\\.css$": "<rootDir>/styleStub.js" }` (stub: `module.exports = {};`), and allow Jest to transform the package (it's ESM-only) |
+
+Client-only apps need none of these.
 
 ## Minimal correct usage
 
@@ -69,7 +81,6 @@ div.root     role=region aria-roledescription=carousel  {...rest props}   contai
 
 ## Hard rules
 
-0. **Import `react-prism-carousel/style.css` once.** Without it, the faces render as plain stacked elements with no 3D.
 1. **The root needs a definite size.** It is `width: 100%; height: 100%` with `container-type: size`, so its content never sizes it. Put it in a parent with a height, or set `height`/`minHeight` on it with `style` or `className`. A carousel with no visible output is almost always 0px tall.
 2. **To advance, increment or decrement; never wrap `currentFace` yourself.** Use `f + 1`, not `(f + 1) % n`. Wrapping makes the prism spin backwards through every face when the transition is on. The component wraps internally for `isFront`. Exception: with `numEmptyFaces > 0` the value is clamped, so clamp it in your own state too (`Math.min(Math.max(f, 0), count - 1)`), or "next" will appear stuck at the ends.
 3. **Turn the transition off while dragging** (`transition={dragging ? undefined : "transform 0.4s ease-out"}`), feed a fractional `currentFace` during the drag, and `Math.round` it on release.
@@ -101,9 +112,9 @@ div.root     role=region aria-roledescription=carousel  {...rest props}   contai
 - Inside slides, `cqw`/`cqh` resolve against the carousel root.
 - `prefers-reduced-motion` disables the `transition` prop. An inline `prismProps.style.transition` still overrides that.
 
-## Known issues (0.1.0)
+## Known issues in this version
 
-Check the installed version in `node_modules/react-prism-carousel/package.json`. This section describes 0.1.0, and later versions of this file say which issues are fixed.
+This file ships inside the package, so this section always matches the installed version.
 
 - **Clicks can reach the wrong element.** In a concave prism, a click on a visible face lands on the wrapper of the face opposite it, so the wrong `faceProps` handler runs. In a convex prism, clicks on faces other than the front one can land on the prism element instead. **Whenever faces have click handlers, or concave mode is used with interactive content, apply this workaround.** The CSS must be unlayered:
 
@@ -169,7 +180,7 @@ const end = () => { start.current = null; setDragging(false); setPos((p) => Math
   orientation="horizontal"
   aria-label="Products"
   noChildrenElem={null}
-  prismProps={{ className: "prism-hit-fix" }}  // 0.1.0: see "Known issues"
+  prismProps={{ className: "prism-hit-fix" }}  // see "Known issues"
   currentFace={face}               // keep 0 … items.length − 1
   numEmptyFaces={9}
   faceSize="30cqw"                 // keeps faces the same size whatever numEmptyFaces is
@@ -229,8 +240,8 @@ faceProps={(i) => ({ "aria-label": items[i].title })}
 | Symptom | Cause | Fix |
 |---|---|---|
 | Nothing renders | The root is 0px tall | Give the parent (or the root) a height. |
-| Faces are piled up flat, with no 3D | The stylesheet isn't imported | `import "react-prism-carousel/style.css"` once. |
-| A click runs the wrong face's handler, or side faces ignore clicks | The 0.1.0 hit-testing issue | Apply the workaround in "Known issues". |
+| `ERR_UNKNOWN_FILE_EXTENSION` / `Unknown file extension ".css"` on the server or in tests | Node loaded the package unbundled | The setting for that tool in "Install and import". |
+| A click runs the wrong face's handler, or side faces ignore clicks | The hit-testing known issue | Apply the workaround in "Known issues". |
 | Prism collapses or looks flat | `%` in `faceSize`, or a 3D-flattening property on the prism | Use `cqw`/`cqh`/`px`; move effects onto the slides. |
 | It spins backwards through every face at the end | `currentFace` wrapped with `%` | Keep incrementing. |
 | "Next" seems stuck in an arc | Value clamped by `numEmptyFaces` while your state keeps growing | Clamp your state too. |

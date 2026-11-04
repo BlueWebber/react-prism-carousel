@@ -29,7 +29,7 @@ The component only **draws** the prism. Deciding which face is in front, and whe
 ## Requirements
 
 - React 19.
-- A bundler that supports CSS Modules (Vite, Next.js, webpack with `css-loader`, …).
+- A bundler that handles CSS imports (Vite, webpack, Next.js, Parcel, …). The package's JavaScript imports its own stylesheet.
 - A browser that supports `sibling-index()`, `sin()`/`cos()`, container queries (`container-type`, `cqw`/`cqh`), CSS nesting, `@layer`, and the individual `translate`/`rotate` properties. `sibling-index()` is the newest of these, so check its support first.
 
 ## Installation
@@ -38,14 +38,40 @@ The component only **draws** the prism. Deciding which face is in front, and whe
 npm install react-prism-carousel
 ```
 
-Import the component, and import the stylesheet once anywhere in your app (next to your root component, for example):
-
 ```tsx
 import Carousel from "react-prism-carousel";
-import "react-prism-carousel/style.css";
 ```
 
-The package is ESM-only.
+There's no stylesheet to import: the package's JavaScript imports its own CSS, and your bundler adds it to your app. The package is ESM-only.
+
+Versions up to 0.1.2 needed `import "react-prism-carousel/style.css"`. That import still works and doesn't load the CSS twice, so you can keep it or remove it.
+
+### Server rendering and tests
+
+Node can't import `.css` files. Tools that run `node_modules` packages directly in Node, without bundling them, fail with `ERR_UNKNOWN_FILE_EXTENSION` (or `Unknown file extension ".css"`). Tell them to bundle this package:
+
+- **Vite server rendering**, including frameworks built on Vite:
+
+  ```ts
+  // vite.config.ts
+  export default defineConfig({
+    ssr: { noExternal: ["react-prism-carousel"] },
+  });
+  ```
+
+- **Vitest:**
+
+  ```ts
+  // vitest.config.ts
+  export default defineConfig({
+    test: { server: { deps: { inline: ["react-prism-carousel"] } } },
+  });
+  ```
+
+- **Next.js**, if the error appears: add `transpilePackages: ["react-prism-carousel"]` to `next.config.js`.
+- **Jest:** map CSS imports to an empty module with `moduleNameMapper: { "\\.css$": "<rootDir>/styleStub.js" }`, where `styleStub.js` contains `module.exports = {};`. Jest must also be allowed to transform this package, since it's ESM-only.
+
+Apps that only render in the browser need none of this.
 
 ### Using an AI coding assistant
 
@@ -62,7 +88,6 @@ It's also online at <https://unpkg.com/react-prism-carousel/FOR-AI.md>.
 ```tsx
 import { useState } from "react";
 import Carousel from "react-prism-carousel";
-import "react-prism-carousel/style.css";
 
 function Featured({ slides }) {
   const [face, setFace] = useState(0);
@@ -367,7 +392,7 @@ Shorter faces and a raised camera, as in this example, let the centerpiece show 
 
 Only what's inside the carousel's box is drawn and clickable (`contain: paint`). Faces that stick out of the box never cover or block neighbouring elements on the page.
 
-Faces turned away from the viewer aren't made inert: in a scroller, several faces can be visible and clickable at once. (In 0.1.0, see [Known issues](#known-issues) for clicks that reach the wrong face.) If only the front face should be interactive and focusable:
+Faces turned away from the viewer aren't made inert: in a scroller, several faces can be visible and clickable at once. (See [Known issues](#known-issues) for clicks that reach the wrong face.) If only the front face should be interactive and focusable:
 
 ```tsx
 faceProps={(i, isFront) => ({ inert: !isFront })}
@@ -434,7 +459,7 @@ Every prop has a doc comment, so your editor shows its description on hover.
 
 ## Known issues
 
-These are known in 0.1.0 and will be fixed in a later version.
+These are known in the current version and will be fixed in a later one.
 
 - **Clicks can reach the wrong face.** In a concave prism, a click on a visible face lands on the wrapper of the face opposite it, so that face's `faceProps` handlers run instead. In a convex prism, clicks on faces angled away from the viewer (every face but the front one) can land on the prism element instead. Clicks on the front face of a convex prism work. As a workaround, give the prism a class and add this unlayered CSS:
 

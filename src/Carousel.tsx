@@ -89,7 +89,7 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
  * prism; keep `currentFace` in your own state and change it to turn it.
  *
  * The parent must have a height: the carousel fills it and never grows with its
- * content. Import `react-prism-carousel/style.css` once.
+ * content. Its CSS is imported automatically.
  *
  * @see https://unpkg.com/react-prism-carousel/FOR-AI.md for AI coding assistants,
  * also at node_modules/react-prism-carousel/FOR-AI.md
