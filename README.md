@@ -1,4 +1,4 @@
-[![npm version](https://shields.io)](https://npmjs.com)
+[![npm version](https://shields.io)](https://www.npmjs.com/package/react-prism-carousel)
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/react-prism-carousel)](https://bundlephobia.com)
 
 # react-prism-carousel
