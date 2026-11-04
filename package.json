@@ -47,8 +47,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "prepublishOnly": "npm run build",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "build:demos": "tsc -b && vite build --mode demos",
+    "predeploy": "npm run build:demos",
+    "deploy": "gh-pages -d dist-demos --nojekyll"
   },
   "peerDependencies": {
     "react": "^19.0.0"
