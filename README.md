@@ -1,3 +1,5 @@
+[![npm-card](https://shields.io)](https://www.npmjs.com/package/react-prism-carousel) [![bundle size](https://shields.io)](https://bundlephobia.com) [![bundle size](https://shields.io)](https://bundlephobia.com)
+
 # react-prism-carousel
 
 A 3D prism carousel for React. Every child becomes one face of a regular prism, and the geometry is done entirely in CSS: no measuring, no animation loop, no JavaScript per frame.
