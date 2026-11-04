@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 // The type declarations come from tsc afterwards (tsconfig.lib.json).
 export default defineConfig({
   plugins: [react()],
+  base: "/react-prism-carousel/",
   build: {
     lib: {
       entry: "src/index.ts",
