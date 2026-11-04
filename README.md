@@ -3,6 +3,8 @@
 
 # react-prism-carousel
 
+Check [github pages](https://bluewebber.github.io/react-prism-carousel) for demos.
+
 A 3D prism carousel for React. Every child becomes one face of a regular prism, and the geometry is done entirely in CSS: no measuring, no animation loop, no JavaScript per frame.
 
 The component only **draws** the prism. Deciding which face is in front, and when and how it turns (buttons, keys, drag, autoplay), is up to you.
