@@ -18,6 +18,7 @@ The component only **draws** the prism. Deciding which face is in front, and whe
 - [Edge cases](#edge-cases)
 - [Overriding styles](#overriding-styles)
 - [TypeScript](#typescript)
+- [Known issues](#known-issues)
 - [Developing](#developing)
 
 ## Requirements
@@ -28,17 +29,35 @@ The component only **draws** the prism. Deciding which face is in front, and whe
 
 ## Installation
 
-The package isn't on npm yet. Copy `src/Carousel.tsx` and `src/index.module.css` into your project, keeping them in the same folder, and import the default export:
+```sh
+npm install react-prism-carousel
+```
+
+Import the component, and import the stylesheet once anywhere in your app (next to your root component, for example):
 
 ```tsx
-import Carousel from "./Carousel";
+import Carousel from "react-prism-carousel";
+import "react-prism-carousel/style.css";
 ```
+
+The package is ESM-only.
+
+### Using an AI coding assistant
+
+The package includes a reference written for AI assistants, at `node_modules/react-prism-carousel/FOR-AI.md`, which always matches the version you installed. Assistants don't look inside `node_modules` on their own, so add this line to your project's agent instructions (`AGENTS.md`, `CLAUDE.md`, Cursor rules, …):
+
+```md
+Before writing code that uses react-prism-carousel, read node_modules/react-prism-carousel/FOR-AI.md.
+```
+
+It's also online at <https://unpkg.com/react-prism-carousel/FOR-AI.md>.
 
 ## Quick start
 
 ```tsx
 import { useState } from "react";
-import Carousel from "./Carousel";
+import Carousel from "react-prism-carousel";
+import "react-prism-carousel/style.css";
 
 function Featured({ slides }) {
   const [face, setFace] = useState(0);
@@ -343,7 +362,7 @@ Shorter faces and a raised camera, as in this example, let the centerpiece show 
 
 Only what's inside the carousel's box is drawn and clickable (`contain: paint`). Faces that stick out of the box never cover or block neighbouring elements on the page.
 
-Faces turned away from the viewer aren't made inert: in a scroller, several faces can be visible and clickable at once. If only the front face should be interactive and focusable:
+Faces turned away from the viewer aren't made inert: in a scroller, several faces can be visible and clickable at once. (In 0.1.0, see [Known issues](#known-issues) for clicks that reach the wrong face.) If only the front face should be interactive and focusable:
 
 ```tsx
 faceProps={(i, isFront) => ({ inert: !isFront })}
@@ -395,20 +414,47 @@ The `--prism-*` custom properties are internal and may change.
 
 ## TypeScript
 
-```ts
-import Carousel, { type FaceProps, type PrismProps } from "./Carousel";
+Types ship with the package:
 
-type CarouselProps = React.ComponentProps<typeof Carousel>;
+```ts
+import Carousel, { type CarouselProps, type FaceProps, type PrismProps } from "react-prism-carousel";
+// or the named export: import { Carousel } from "react-prism-carousel";
 ```
 
-- `FaceProps` is `React.HTMLAttributes<HTMLSpanElement>`.
-- `PrismProps` is `React.HTMLAttributes<HTMLDivElement>`.
+- `CarouselProps`: every prop above, plus the root's HTML attributes.
+- `FaceProps`: `React.HTMLAttributes<HTMLSpanElement>`.
+- `PrismProps`: `React.HTMLAttributes<HTMLDivElement>`.
+
+Every prop has a doc comment, so your editor shows its description on hover.
+
+## Known issues
+
+These are known in 0.1.0 and will be fixed in a later version.
+
+- **Clicks can reach the wrong face.** In a concave prism, a click on a visible face lands on the wrapper of the face opposite it, so that face's `faceProps` handlers run instead. In a convex prism, clicks on faces angled away from the viewer (every face but the front one) can land on the prism element instead. Clicks on the front face of a convex prism work. As a workaround, give the prism a class and add this unlayered CSS:
+
+  ```tsx
+  <Carousel prismProps={{ className: "prism-hit-fix" }} … />
+  ```
+
+  ```css
+  .prism-hit-fix { pointer-events: none; }
+  .prism-hit-fix > * { pointer-events: auto; backface-visibility: hidden; }
+  /* the centerpiece wrapper is always the prism's last child */
+  .prism-hit-fix > :last-child { pointer-events: none; }
+  .prism-hit-fix > :last-child > * { pointer-events: auto; }
+  ```
+
+  `backface-visibility` here applies only to the face wrappers, not to your slides, so it doesn't change what you see.
+- **With `prefers-reduced-motion`, the centerpiece still animates** its turn while the prism changes instantly. Workaround, with the class above: `@media (prefers-reduced-motion: reduce) { .prism-hit-fix > :last-child { transition: none; } }`.
+- **With exactly one face** (and no `numEmptyFaces`), changing `currentFace` with a transition spins the centerpiece a full turn. Keep `currentFace` at 0 when there's only one face.
 
 ## Developing
 
 ```sh
-npm install
-npm run dev
+npm install --legacy-peer-deps   # typescript-eslint doesn't accept TypeScript 7 as a peer yet
+npm run dev                      # the demo page
+npm run build                    # the package, into dist/
 ```
 
-This opens the demo page from `demos/`, with one section per feature: horizontal and vertical prisms, an arc scroller, dragging, `faceProps`, concave mode and the camera, card backs, the centerpiece, and the 0-, 1- and 2-face edge cases.
+The demo page in `demos/` has one section per feature: horizontal and vertical prisms, an arc scroller, dragging, `faceProps`, concave mode and the camera, card backs, the centerpiece, and the 0-, 1- and 2-face edge cases.

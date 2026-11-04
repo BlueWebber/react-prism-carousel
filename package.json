@@ -1,17 +1,55 @@
 {
   "name": "react-prism-carousel",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A 3D prism carousel for React, drawn entirely in CSS. You control the rotation.",
+  "keywords": [
+    "react",
+    "carousel",
+    "3d",
+    "prism",
+    "css",
+    "slider",
+    "component"
+  ],
+  "license": "MIT",
+  "author": "BlueWebber",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlueWebber/react-prism-carousel.git"
+  },
+  "homepage": "https://github.com/BlueWebber/react-prism-carousel#readme",
+  "bugs": {
+    "url": "https://github.com/BlueWebber/react-prism-carousel/issues"
+  },
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css",
+    "./FOR-AI.md": "./FOR-AI.md",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "FOR-AI.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "llms": "./FOR-AI.md",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && tsc -p tsconfig.lib.json",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+  "peerDependencies": {
+    "react": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -23,6 +61,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "~7.0.2",
     "typescript-eslint": "^8.72.0",
     "vite": "^8.3.5"

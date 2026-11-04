@@ -8,13 +8,14 @@ This file is for AI assistants writing code that **uses** this component in anot
 
 **It draws; it does not control.** It has no internal state, no autoplay, no buttons, no keyboard or drag handling. The consuming code owns `currentFace` in its own state and changes it in response to input.
 
-## Files and imports
+## Install and import
 
-The component is two files that must stay side by side: `Carousel.tsx` and `index.module.css`. It's not on npm yet; projects copy both files in. The bundler must support CSS Modules.
+`npm install react-prism-carousel`. The package is ESM-only, has a peer dependency on `react@^19`, and ships its own types.
 
 ```ts
-import Carousel, { type FaceProps, type PrismProps } from "./Carousel"; // adjust the path
-type CarouselProps = React.ComponentProps<typeof Carousel>; // CarouselProps itself isn't exported
+import Carousel from "react-prism-carousel";               // or: import { Carousel } from …
+import type { CarouselProps, FaceProps, PrismProps } from "react-prism-carousel";
+import "react-prism-carousel/style.css";                    // REQUIRED, once per app (e.g. in the root component or entry file)
 ```
 
 ## Minimal correct usage
@@ -68,6 +69,7 @@ div.root     role=region aria-roledescription=carousel  {...rest props}   contai
 
 ## Hard rules
 
+0. **Import `react-prism-carousel/style.css` once.** Without it, the faces render as plain stacked elements with no 3D.
 1. **The root needs a definite size.** It is `width: 100%; height: 100%` with `container-type: size`, so its content never sizes it. Put it in a parent with a height, or set `height`/`minHeight` on it with `style` or `className`. A carousel with no visible output is almost always 0px tall.
 2. **To advance, increment or decrement; never wrap `currentFace` yourself.** Use `f + 1`, not `(f + 1) % n`. Wrapping makes the prism spin backwards through every face when the transition is on. The component wraps internally for `isFront`. Exception: with `numEmptyFaces > 0` the value is clamped, so clamp it in your own state too (`Math.min(Math.max(f, 0), count - 1)`), or "next" will appear stuck at the ends.
 3. **Turn the transition off while dragging** (`transition={dragging ? undefined : "transform 0.4s ease-out"}`), feed a fractional `currentFace` during the drag, and `Math.round` it on release.
@@ -98,6 +100,27 @@ div.root     role=region aria-roledescription=carousel  {...rest props}   contai
 - **Backfaces are visible (mirrored) by default.** Hide them with `backface-visibility: hidden` on the slide.
 - Inside slides, `cqw`/`cqh` resolve against the carousel root.
 - `prefers-reduced-motion` disables the `transition` prop. An inline `prismProps.style.transition` still overrides that.
+
+## Known issues (0.1.0)
+
+Check the installed version in `node_modules/react-prism-carousel/package.json`. This section describes 0.1.0, and later versions of this file say which issues are fixed.
+
+- **Clicks can reach the wrong element.** In a concave prism, a click on a visible face lands on the wrapper of the face opposite it, so the wrong `faceProps` handler runs. In a convex prism, clicks on faces other than the front one can land on the prism element instead. **Whenever faces have click handlers, or concave mode is used with interactive content, apply this workaround.** The CSS must be unlayered:
+
+  ```tsx
+  <Carousel prismProps={{ className: "prism-hit-fix" }} … />
+  ```
+
+  ```css
+  .prism-hit-fix { pointer-events: none; }
+  .prism-hit-fix > * { pointer-events: auto; backface-visibility: hidden; }
+  .prism-hit-fix > :last-child { pointer-events: none; }           /* the centerpiece wrapper is always the last child */
+  .prism-hit-fix > :last-child > * { pointer-events: auto; }
+  @media (prefers-reduced-motion: reduce) { .prism-hit-fix > :last-child { transition: none; } }  /* next issue */
+  ```
+
+- **Under `prefers-reduced-motion`, the centerpiece still animates** its counter-rotation. The last rule above fixes it.
+- **With exactly one face and no empty faces**, changing `currentFace` while a transition is set spins the centerpiece a full turn. Keep `currentFace` at 0 when there's only one face.
 
 ## Recipes
 
@@ -146,6 +169,7 @@ const end = () => { start.current = null; setDragging(false); setPos((p) => Math
   orientation="horizontal"
   aria-label="Products"
   noChildrenElem={null}
+  prismProps={{ className: "prism-hit-fix" }}  // 0.1.0: see "Known issues"
   currentFace={face}               // keep 0 … items.length − 1
   numEmptyFaces={9}
   faceSize="30cqw"                 // keeps faces the same size whatever numEmptyFaces is
@@ -205,6 +229,8 @@ faceProps={(i) => ({ "aria-label": items[i].title })}
 | Symptom | Cause | Fix |
 |---|---|---|
 | Nothing renders | The root is 0px tall | Give the parent (or the root) a height. |
+| Faces are piled up flat, with no 3D | The stylesheet isn't imported | `import "react-prism-carousel/style.css"` once. |
+| A click runs the wrong face's handler, or side faces ignore clicks | The 0.1.0 hit-testing issue | Apply the workaround in "Known issues". |
 | Prism collapses or looks flat | `%` in `faceSize`, or a 3D-flattening property on the prism | Use `cqw`/`cqh`/`px`; move effects onto the slides. |
 | It spins backwards through every face at the end | `currentFace` wrapped with `%` | Keep incrementing. |
 | "Next" seems stuck in an arc | Value clamped by `numEmptyFaces` while your state keeps growing | Clamp your state too. |

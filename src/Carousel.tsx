@@ -5,26 +5,96 @@ import styles from "./index.module.css";
 // deliberately leaves it in for them). Declared here so it type-checks without @types/node.
 declare const process: { env: { NODE_ENV?: string } };
 
-export type FaceProps = React.HTMLAttributes<HTMLSpanElement>;
-export type PrismProps = React.HTMLAttributes<HTMLDivElement>;
-
-interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
-  orientation: "horizontal" | "vertical";
-  noChildrenElem: React.ReactNode;
-  centerpieceElem?: React.ReactNode;
-  currentFace?: number; //index of the current face to show, default is 0
-  numEmptyFaces?: number; //number of empty faces to add to the carousel, default is 0
-  // props for each face's wrapper: one object for every face, or a function for per-face props
-  // isFront: whether this face is the one currently facing the viewer
-  faceProps?: FaceProps | ((index: number, isFront: boolean) => FaceProps);
-  prismProps?: PrismProps; //props for the prism itself
-  faceSize?: string; //size of each face
-  concave?: boolean;
-  cameraOffset?: string; // negative values move the camera away from the prism, positive values move it closer
-  transition?: string; // CSS transition for the prism transform
+// Without a bundler `process` doesn't exist and reading it throws, so treat that as
+// production. (A `typeof process` check would hide the warning in bundled apps too:
+// bundlers replace the whole `process.env.NODE_ENV` text, but `process` itself stays
+// undefined in the browser.)
+function isDev() {
+  try {
+    return process.env.NODE_ENV !== "production";
+  } catch {
+    return false;
+  }
 }
 
+/** HTML attributes for each face's wrapper `<span>`. */
+export type FaceProps = React.HTMLAttributes<HTMLSpanElement>;
+/** HTML attributes for the prism `<div>`. */
+export type PrismProps = React.HTMLAttributes<HTMLDivElement>;
+
+/**
+ * Props for {@link Carousel}. Any other HTML attribute is passed to the root `<div>`
+ * (`className` is merged, `style` is passed as is): put `aria-label`, `tabIndex`,
+ * event handlers, and the CSS `perspective` / `perspectiveOrigin` there.
+ */
+export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * One face per child. Arrays are flattened, `null` / `undefined` / booleans are
+   * skipped, and a Fragment counts as one face.
+   */
+  children?: React.ReactNode;
+  /**
+   * `"horizontal"` spins around the vertical axis (faces side by side, each as tall
+   * as the carousel); `"vertical"` spins around the horizontal axis.
+   */
+  orientation: "horizontal" | "vertical";
+  /** Shown, flat and full size, when there are no children. `null` is allowed. */
+  noChildrenElem: React.ReactNode;
+  /**
+   * Content on the prism's axis, turned so it always faces the viewer. Its wrapper
+   * fills the carousel's box, so centre the content yourself.
+   */
+  centerpieceElem?: React.ReactNode;
+  /**
+   * The face to bring to the front. Default 0. Not wrapped: with 6 faces, 6 shows
+   * face 0 again, so keep incrementing to loop smoothly. Fractions rotate partway
+   * (for dragging). Clamped to the real faces when `numEmptyFaces` > 0.
+   */
+  currentFace?: number;
+  /**
+   * Extra empty sides, which turn the closed prism into an arc. Default 0.
+   * Rounded down; negative values count as 0.
+   */
+  numEmptyFaces?: number;
+  /**
+   * Attributes for every face's wrapper `<span>`: one object for all faces, or a
+   * function for per-face values. Applied after the default ARIA attributes, so it
+   * can override them. `isFront`: this face is the one nearest the front.
+   */
+  faceProps?: FaceProps | ((index: number, isFront: boolean) => FaceProps);
+  /** Attributes for the prism `<div>`. `className` and `style` are merged. */
+  prismProps?: PrismProps;
+  /**
+   * Width (horizontal) or height (vertical) of each face, as a CSS length. The
+   * radius is calculated from it. Use px, rem, cqw or cqh, never % (the depth
+   * can't use %, so the prism collapses).
+   */
+  faceSize?: string;
+  /** Faces point inward, as if seen from inside the prism. Default false. */
+  concave?: boolean;
+  /**
+   * Moves the camera, as a CSS length: positive values bring it closer (eventually
+   * inside the prism), negative values move it away.
+   */
+  cameraOffset?: string;
+  /**
+   * CSS `transition` for the prism: rotation is `transform`, `cameraOffset` is
+   * `translate`. Default none. Switched off under `prefers-reduced-motion`.
+   */
+  transition?: string;
+}
+
+/**
+ * A 3D prism carousel: every child is one face. The component only draws the
+ * prism; keep `currentFace` in your own state and change it to turn it.
+ *
+ * The parent must have a height: the carousel fills it and never grows with its
+ * content. Import `react-prism-carousel/style.css` once.
+ *
+ * @see https://unpkg.com/react-prism-carousel/FOR-AI.md for AI coding assistants,
+ * also at node_modules/react-prism-carousel/FOR-AI.md
+ * @see https://github.com/BlueWebber/react-prism-carousel#readme
+ */
 function Carousel({
   children,
   orientation,
@@ -44,10 +114,7 @@ function Carousel({
   // transform-origin Z value, so the prism silently collapses.
   // In an effect so it logs once per faceSize change, not on every render.
   React.useEffect(() => {
-    if (
-      process.env.NODE_ENV !== "production" &&
-      faceSize?.trim().endsWith("%")
-    ) {
+    if (isDev() && faceSize?.trim().endsWith("%")) {
       console.warn(
         `Carousel: faceSize "${faceSize}" uses %, which the 3D depth (transform-origin Z) doesn't accept. ` +
           `Use cqw (horizontal) or cqh (vertical) for sizes relative to the carousel.`,
